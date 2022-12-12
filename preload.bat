@@ -1,0 +1,1 @@
+C:\Users\Admin\Desktop\Aysi\emsdk\upstream\emscripten\tools\file_packager.bat fp.data --preload files_data --js-output=fp.js
