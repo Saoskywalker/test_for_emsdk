@@ -40,10 +40,10 @@ add_executable(index ${SRC_LIST})
 set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
 #index文件需要使用到的库名称, PS:使用GCC规则, 缩写名, 如libSDL2.so, 则为SDL2
-target_link_libraries(index
-    SDL2
-)
+# target_link_libraries(index
+#     SDL2
+# )
 
 #设置运行文件特性
 #按要求生成合适的HTML文件
-set_target_properties(index PROPERTIES LINK_FLAGS "--shell-file ${PROJECT_SOURCE_DIR}/emsdk_shell.html -s SINGLE_FILE=1")
+set_target_properties(index PROPERTIES LINK_FLAGS "--shell-file ${PROJECT_SOURCE_DIR}/emsdk_shell.html -s SINGLE_FILE=0")
