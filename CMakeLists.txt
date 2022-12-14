@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.12)
 project (emsdk_test)
 
 #设置C编译器特性
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -s USE_SDL=2 -s FORCE_FILESYSTEM=1")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -s USE_SDL=2 -s USE_SDL_MIXER=2 -s USE_SDL_IMAGE=2 -s USE_SDL_NET=2 -s FORCE_FILESYSTEM=1")
 
 #设置头文件路径, 相当于gcc的-I
 include_directories(include)

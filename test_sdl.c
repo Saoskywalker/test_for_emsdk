@@ -66,7 +66,7 @@ int test_sdl_audio(int argc, char* argv[])
 		return -1;
 	}
  
-    _WAV_Play("./aiwer_smile.wav");
+    _WAV_Play("./files_data/music.wav");
 	SDL_Quit();
  
 	return 0;
@@ -86,16 +86,77 @@ struct wav_
     uint32_t play_time_ms;       //播放时长
 };
 static struct wav_ wav;
+
+#define ReadSize (512 * 40) /*一次读取数据大小*/
+int i, tj = 1;
+int a, b, u, Inx, r = 0;
+uint8_t buff[8192];
+int res = 0;
+FILE *fp1 = NULL;
+int data_count = 0;
+SDL_AudioSpec wanted_spec;
+
+void sound_run(void)
+{
+    if (audio_len > 0) // Wait until finish
+        return;
+
+    if (a)
+        a--;
+    u++;
+    Inx++;
+    if (a >= 1)
+    {
+        /*output pcm data*/
+        data_count += ReadSize;
+        // Set audio buffer (PCM data)
+        audio_chunk = (uint8_t *)wav_buff[Inx % 2];
+        // Audio buffer length
+        audio_len = ReadSize;
+        audio_pos = audio_chunk;
+        /**********************/
+
+        fseek(fp1, i + 4 + ((1 + u) * ReadSize), SEEK_SET);
+        if (a == 1) // 读剩余数据
+        {
+            if ((Inx % 2) == 0)
+                fread(wav_buff[1], 1, b, fp1);
+            if ((Inx % 2) == 1)
+                fread(wav_buff[0], 1, b, fp1);
+        }
+        else
+        {
+            if ((Inx % 2) == 0)
+                fread(wav_buff[1], 1, ReadSize, fp1);
+            if ((Inx % 2) == 1)
+                fread(wav_buff[0], 1, ReadSize, fp1);
+        }
+    }
+    else
+    {
+        if (b > 0)
+        {
+            /*output pcm data*/
+            data_count += b;
+            // Set audio buffer (PCM data)
+            audio_chunk = (uint8_t *)wav_buff[Inx % 2];
+            // Audio buffer length
+            audio_len = b;
+            audio_pos = audio_chunk;
+            /**********************/
+
+            b = 0;
+        }
+        else
+        {
+            printf("play end\r\n");
+            // break;
+        }
+    }
+}
+
 int _WAV_Play(char *path)
 {
-#define ReadSize (512 * 40) /*一次读取数据大小*/
-    int i, tj = 1;
-    int a, b, u, Inx, r = 0;
-    uint8_t buff[8192];
-    int res = 0;
-    FILE *fp1 = NULL;
-    int data_count = 0;
-
     printf("WAV play\r\n");
 
     if (path == NULL)
@@ -105,9 +166,13 @@ int _WAV_Play(char *path)
     }
     fp1 = fopen(path, "rb");
     if (fp1 == NULL)
+    {
         res = 4;
+    }
     else
+    {
         res = 0;
+    }
     if (res == 5)
     {
         printf("no path..\r\n");
@@ -183,7 +248,6 @@ int _WAV_Play(char *path)
 
             /*audio init*/
             //SDL_AudioSpec
-            SDL_AudioSpec wanted_spec;
             wanted_spec.freq = wav.sample_rate; //44100;
             wanted_spec.channels = wav.num_channels; //2;
             wanted_spec.silence = 0;
@@ -217,64 +281,11 @@ int _WAV_Play(char *path)
 
             Inx = 0;
             u = 0;
-            while (1)
-            {
-                while (audio_len > 0) //Wait until finish
-                    SDL_Delay(1);                
-
-                if(a)
-                    a--;
-                u++;
-                Inx++;
-                if (a >= 1)
-                {
-                    /*output pcm data*/
-                    data_count += ReadSize;
-                    //Set audio buffer (PCM data)
-                    audio_chunk = (uint8_t *)wav_buff[Inx % 2];
-                    //Audio buffer length
-                    audio_len = ReadSize;
-                    audio_pos = audio_chunk;
-                    /**********************/
-
-                    fseek(fp1, i + 4 + ((1 + u) * ReadSize), SEEK_SET);
-                    if (a == 1) //读剩余数据
-                    {
-                        if ((Inx % 2) == 0)
-                            fread(wav_buff[1], 1, b, fp1);
-                        if ((Inx % 2) == 1)
-                            fread(wav_buff[0], 1, b, fp1);
-                    }
-                    else
-                    {
-                        if ((Inx % 2) == 0)
-                            fread(wav_buff[1], 1, ReadSize, fp1);
-                        if ((Inx % 2) == 1)
-                            fread(wav_buff[0], 1, ReadSize, fp1);
-                    }
-                }
-                else
-                {
-                    if (b > 0)
-                    {
-                        /*output pcm data*/
-                        data_count += b;
-                        //Set audio buffer (PCM data)
-                        audio_chunk = (uint8_t *)wav_buff[Inx % 2];
-                        //Audio buffer length
-                        audio_len = b;
-                        audio_pos = audio_chunk;
-                        /**********************/
-
-                        b = 0;
-                    }
-                    else
-                    {
-                        printf("play end\r\n");
-                        break;
-                    }
-                }
-            }
+            // while (1)
+            // {
+            //     sound_run();
+            // }
+            return 0;
         }
         else
             printf("format error\r\n");
@@ -337,8 +348,8 @@ const int bpp=24;
 const int bpp=12;
 #endif
  
-int screen_w=800,screen_h=480;
-const int pixel_w=800,pixel_h=480;
+int screen_w=320,screen_h=180;
+const int pixel_w=320,pixel_h=180;
  
 //Convert RGB24/BGR24 to RGB32/BGR32
 //And change Endian if needed
@@ -378,27 +389,38 @@ int refresh_video(void *opaque){
 	}
 	return 0;
 }
- 
+
+unsigned char buffer[pixel_w * pixel_h * bpp / 8];
+//BPP=32
+unsigned char buffer_convert[pixel_w * pixel_h * 4];
+SDL_Renderer *sdlRenderer;
+SDL_Window *screen; 
+SDL_Texture *sdlTexture;
 int test_sdl_framebuffer(int argc, char* argv[])
 {
-	if(SDL_Init(SDL_INIT_VIDEO)) {  
+	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER)) {  
 		printf( "Could not initialize SDL - %s\n", SDL_GetError()); 
 		return -1;
 	} 
- 
-	SDL_Window *screen; 
+    _WAV_Play("./files_data/music.wav");
 	//SDL 2.0 Support for multiple windows
-	screen = SDL_CreateWindow("Simplest Video Play SDL2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		screen_w, screen_h,SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+	screen = SDL_CreateWindow("MTFsss fe", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+		screen_w, screen_h,0);
 	if(!screen) {  
 		printf("SDL: could not create window - exiting:%s\n",SDL_GetError());  
 		return -1;
 	}
-	SDL_Renderer* sdlRenderer = SDL_CreateRenderer(screen, -1, 0);
+	sdlRenderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_SOFTWARE);
 
-    unsigned char buffer[pixel_w * pixel_h * bpp / 8];
-    //BPP=32
-    unsigned char buffer_convert[pixel_w * pixel_h * 4];
+//     unsigned char *buffer = malloc(pixel_w * pixel_h * bpp / 8);
+//     //BPP=32
+//     unsigned char *buffer_convert = malloc(pixel_w * pixel_h * 4);
+
+//     memset(buffer, 0X0000FF00, pixel_w * pixel_h * bpp / 8); 
+// memset(buffer_convert, 0X0000FF00, pixel_w * pixel_h * 4);
+    // unsigned char buffer[pixel_w * pixel_h * bpp / 8];
+    // //BPP=32
+    // unsigned char buffer_convert[pixel_w * pixel_h * 4];     
     Uint32 pixformat = 0;
 #if LOAD_BGRA
 	//Note: ARGB8888 in "Little Endian" system stores as B|G|R|A
@@ -413,8 +435,8 @@ int test_sdl_framebuffer(int argc, char* argv[])
 	pixformat= SDL_PIXELFORMAT_IYUV;  
 #endif
  
-	SDL_Texture* sdlTexture = SDL_CreateTexture(sdlRenderer,pixformat, SDL_TEXTUREACCESS_STREAMING,pixel_w,pixel_h);
- 
+	sdlTexture = SDL_CreateTexture(sdlRenderer,pixformat, SDL_TEXTUREACCESS_STREAMING,pixel_w,pixel_h);
+    // SDL_SetTextureBlendMode(sdlTexture, SDL_BLENDMODE_BLEND);
  
  
 	FILE *fp=NULL;
@@ -439,7 +461,7 @@ int test_sdl_framebuffer(int argc, char* argv[])
     static uint32_t color = 0XFFFF0000, *bf_bf = NULL; //ARGB
     memset(buffer, 0XFF, sizeof(buffer));
     bf_bf = (uint32_t *)buffer;
-	while(1){
+	while(0){
 		//Wait
 		SDL_WaitEvent(&event);
 		if(event.type==REFRESH_EVENT)
@@ -455,8 +477,8 @@ int test_sdl_framebuffer(int argc, char* argv[])
             else
                 color = 0XFFFF0000;
 
-            for (size_t i = 0; i < sizeof(buffer) / 4; i++)
-                bf_bf[i] = color;
+            for (size_t ii = 0; ii < sizeof(buffer) / 4; ii++)
+                bf_bf[ii] = color;
 
 #if LOAD_BGRA
 			//We don't need to change Endian
@@ -477,7 +499,7 @@ int test_sdl_framebuffer(int argc, char* argv[])
 			sdlRect.h = screen_h;  
 			
 			SDL_RenderClear( sdlRenderer );   
-			SDL_RenderCopy( sdlRenderer, sdlTexture, NULL, &sdlRect);  
+			SDL_RenderCopy( sdlRenderer, sdlTexture, NULL, NULL);  
 			SDL_RenderPresent( sdlRenderer );  
 			//Delay 16ms
 			SDL_Delay(16);
@@ -494,4 +516,87 @@ int test_sdl_framebuffer(int argc, char* argv[])
 	}
  
 	return 0;
+}
+
+void display_run(void)
+{
+    static uint32_t color = 0XFFFF0000, *bf_bf = NULL; // ARGB
+    memset(buffer, 0XFF, sizeof(buffer));
+    bf_bf = (uint32_t *)buffer;
+
+    if (color <= 0XFFFF0F0F)
+        color += 0X00100010;
+    else
+        color = 0XFF1F0F0F;
+
+    for (size_t ii = 0; ii < sizeof(buffer) / 4; ii++)
+        bf_bf[ii] = color;
+
+    SDL_UpdateTexture(sdlTexture, NULL, buffer, pixel_w * 4);
+    SDL_RenderClear(sdlRenderer);
+    SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+    SDL_RenderPresent(sdlRenderer);
+}
+
+/**
+ * It will be called from the main SDL thread
+ */
+void mouse_handler(SDL_Event * event)
+{
+    switch(event->type) {
+        case SDL_MOUSEBUTTONUP:
+            if(event->button.button == SDL_BUTTON_LEFT)
+            {
+                // left_button_down = false;
+                printf("left_button_down = false\r\n");
+            }
+            break;
+        case SDL_MOUSEBUTTONDOWN:
+            if(event->button.button == SDL_BUTTON_LEFT) {
+                // left_button_down = true;
+                // last_x = event->motion.x / MONITOR_ZOOM;
+                // last_y = event->motion.y / MONITOR_ZOOM;
+                printf("left_button_down = true\r\n");
+                printf("x: %d, y: %d\r\n", event->motion.x, event->motion.y);
+            }
+            break;
+        case SDL_MOUSEMOTION:
+            // last_x = event->motion.x / MONITOR_ZOOM;
+            // last_y = event->motion.y / MONITOR_ZOOM;
+            printf("x: %d, y: %d\r\n", event->motion.x, event->motion.y);
+            break;
+
+        case SDL_FINGERUP:
+            // left_button_down = false;
+            // last_x = LV_HOR_RES * event->tfinger.x / MONITOR_ZOOM;
+            // last_y = LV_VER_RES * event->tfinger.y / MONITOR_ZOOM;
+            break;
+        case SDL_FINGERDOWN:
+            // left_button_down = true;
+            // last_x = LV_HOR_RES * event->tfinger.x / MONITOR_ZOOM;
+            // last_y = LV_VER_RES * event->tfinger.y / MONITOR_ZOOM;
+            break;
+        case SDL_FINGERMOTION:
+            // last_x = LV_HOR_RES * event->tfinger.x / MONITOR_ZOOM;
+            // last_y = LV_VER_RES * event->tfinger.y / MONITOR_ZOOM;
+            break;
+    }
+
+}
+
+void do_loop(void *arg)
+{
+    /* Periodically call the lv_task handler.
+     * It could be done in a timer interrupt or an OS task too.*/
+    // lv_task_handler();
+
+    SDL_Event event;
+    
+    while(SDL_PollEvent(&event)) {
+        mouse_handler(&event);
+    }
+
+    display_run();
+    sound_run();
+    SDL_Delay(10); // Delay 10ms
 }
