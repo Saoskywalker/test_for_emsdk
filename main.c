@@ -40,7 +40,8 @@ int main(int argc, char *argv[])
             printf("file2 error\r\n");
     }
 
-    // test_sdl();
+    test_sdl();
+    test_sdl_audio(0, NULL);
     test_sdl_framebuffer(0, NULL);
 
     /**************************************

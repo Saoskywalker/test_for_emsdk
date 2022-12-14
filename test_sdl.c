@@ -7,14 +7,14 @@
 
 void test_sdl(void)
 {
-    if (SDL_Init(SDL_INIT_VIDEO) == -1) //SDL_初始化
+    if (SDL_Init((SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER)) == -1) //SDL_初始化
     {
-        printf("Could not initialize SDL!\n");
+        printf( "Could not initialize SDL - %s\n", SDL_GetError()); 
     }
     else
     {
         printf("SDL initialized.\n");
-        SDL_Quit(); //退出SDL调用
+        // SDL_Quit(); //退出SDL调用
     }
 } 
 
@@ -61,13 +61,13 @@ int _WAV_Play(char *path);
 int test_sdl_audio(int argc, char* argv[])
 {
 	//Init
-	if(SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER)) {  
-		printf( "Could not initialize SDL - %s\n", SDL_GetError()); 
-		return -1;
-	}
+	// if(SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER)) {  
+	// 	printf( "Could not initialize SDL - %s\n", SDL_GetError()); 
+	// 	return -1;
+	// }
  
     _WAV_Play("./files_data/music.wav");
-	SDL_Quit();
+	// SDL_Quit();
  
 	return 0;
 }
@@ -398,11 +398,11 @@ SDL_Window *screen;
 SDL_Texture *sdlTexture;
 int test_sdl_framebuffer(int argc, char* argv[])
 {
-	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER)) {  
-		printf( "Could not initialize SDL - %s\n", SDL_GetError()); 
-		return -1;
-	} 
-    _WAV_Play("./files_data/music.wav");
+	// if(SDL_Init(SDL_INIT_VIDEO)) {  
+	// 	printf( "Could not initialize SDL - %s\n", SDL_GetError()); 
+	// 	return -1;
+	// } 
+
 	//SDL 2.0 Support for multiple windows
 	screen = SDL_CreateWindow("MTFsss fe", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 		screen_w, screen_h,0);
