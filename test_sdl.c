@@ -5,6 +5,8 @@
 #include <string.h>
 #include <SDL2/SDL.h>
 
+uint32_t color_set = 0XFFFF0000;
+
 void test_sdl(void)
 {
     if (SDL_Init((SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER)) == -1) //SDL_初始化
@@ -186,7 +188,7 @@ int _WAV_Play(char *path)
     if (res == 0)
     {
         printf("WAV file open successful..\r\n");
-
+        color_set = 0XFF00FF00;
         /*解WAV文件*/
         fread(buff, 1, 58, fp1);
         //for(i=0;i<44;i++)printf("%02x ",buff[i]);
@@ -348,8 +350,8 @@ const int bpp=24;
 const int bpp=12;
 #endif
  
-int screen_w=320,screen_h=180;
-const int pixel_w=320,pixel_h=180;
+int screen_w=600,screen_h=800;
+const int pixel_w=600,pixel_h=800;
  
 //Convert RGB24/BGR24 to RGB32/BGR32
 //And change Endian if needed
@@ -421,7 +423,7 @@ int test_sdl_framebuffer(int argc, char* argv[])
     // unsigned char buffer[pixel_w * pixel_h * bpp / 8];
     // //BPP=32
     // unsigned char buffer_convert[pixel_w * pixel_h * 4];     
-    Uint32 pixformat = 0;
+    uint32_t pixformat = 0;
 #if LOAD_BGRA
 	//Note: ARGB8888 in "Little Endian" system stores as B|G|R|A
 	pixformat= SDL_PIXELFORMAT_ARGB8888;  
@@ -530,7 +532,7 @@ void display_run(void)
         color = 0XFF1F0F0F;
 
     for (size_t ii = 0; ii < sizeof(buffer) / 4; ii++)
-        bf_bf[ii] = color;
+        bf_bf[ii] = color_set;
 
     SDL_UpdateTexture(sdlTexture, NULL, buffer, pixel_w * 4);
     SDL_RenderClear(sdlRenderer);
@@ -558,6 +560,14 @@ void mouse_handler(SDL_Event * event)
                 // last_y = event->motion.y / MONITOR_ZOOM;
                 printf("left_button_down = true\r\n");
                 printf("x: %d, y: %d\r\n", event->motion.x, event->motion.y);
+                if (event->motion.x>=0&&event->motion.x<=pixel_w/2)
+                {
+                    color_set = 0XFFFF0000;
+                }
+                else if (event->motion.x>pixel_w/2&&event->motion.x<=pixel_w)
+                {
+                    color_set = 0XFF0000FF;
+                }
             }
             break;
         case SDL_MOUSEMOTION:
@@ -582,6 +592,68 @@ void mouse_handler(SDL_Event * event)
             break;
     }
 
+}
+
+int timer_count = 0;
+ 
+//回调函数
+uint32_t my_fun(uint32_t interval, void *param)
+{
+    printf("%u\n", SDL_GetTicks());
+    printf("interval: %d  *param: %d\n", interval, *(int*)param);
+    timer_count++;
+    return interval;
+}
+ 
+int test_sdl_timer(void)
+{
+    int ret;
+    uint32_t time;
+    //定时器ID
+    SDL_TimerID timeId = 0;
+ 
+    //SDL初始化
+    // ret = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
+    // if (-1 == ret)
+    // {
+    //     printf("SDL_Init failed..\n"); 
+    //     goto err0;
+    // }
+
+    //延时函数  单位是毫秒
+    //SDL_Delay(1000);
+    //返回从SDL初始化开始到现在的时间 单位是毫秒
+    time = SDL_GetTicks();
+    printf("%u\n", time);
+ 
+ 
+    //添加定时器
+    timeId = SDL_AddTimer(1000, my_fun, &time); //定时1s
+    if (0 == timeId)
+    {
+        printf("AddTime failed...\n"); 
+        goto err0;
+    }
+    else
+    {
+        printf("AddTime ok...\n"); 
+    }
+
+    return 0;
+    while(1)
+    {
+        if (10 == timer_count)
+            break;
+    }
+ 
+    //删除定时器
+    SDL_RemoveTimer(timeId);
+ 
+    //关闭SDL
+    SDL_Quit();
+    return 0;
+err0:
+    return -1;
 }
 
 void do_loop(void *arg)

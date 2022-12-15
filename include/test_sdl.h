@@ -7,6 +7,7 @@
 void test_sdl(void);
 int test_sdl_audio(int argc, char* argv[]);
 int test_sdl_framebuffer(int argc, char* argv[]);
+int test_sdl_timer(void);
 void do_loop(void *arg);
 
 #endif

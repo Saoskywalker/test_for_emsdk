@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
     }
 
     test_sdl();
+    test_sdl_timer();
     test_sdl_audio(0, NULL);
     test_sdl_framebuffer(0, NULL);
 
