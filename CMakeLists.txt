@@ -7,6 +7,9 @@ project (emsdk_test)
 #设置C编译器特性
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -s USE_SDL=2 -s USE_SDL_MIXER=2 -s USE_SDL_IMAGE=2 -s USE_SDL_NET=2 -s FORCE_FILESYSTEM=1")
 
+#宏定义, 类似gcc的-D
+add_definitions(-DDEBUG)
+
 #设置头文件路径, 相当于gcc的-I
 include_directories(include)
 
@@ -22,8 +25,8 @@ include_directories(include)
 # set(SOURCES ${MY_SOURCES})
 
 #设置带编译文件, 可包括C/C++
-set(SRC_LIST main.c 
-    test_sdl.c)
+set(SRC_LIST main.c)
+set(SRC_LIST ${SRC_LIST} test_sdl.c)
 
 #编译生成名为index可执行文件
 add_executable(index ${SRC_LIST})
