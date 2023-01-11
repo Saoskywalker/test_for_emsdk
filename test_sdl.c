@@ -604,13 +604,20 @@ uint32_t my_fun(uint32_t interval, void *param)
     timer_count++;
     return interval;
 }
+
+//回调函数
+uint32_t my_fun2(uint32_t interval, void *param)
+{
+    printf("timer2: %u\n", SDL_GetTicks());
+    return interval;
+}
  
 int test_sdl_timer(void)
 {
     int ret;
     uint32_t time;
     //定时器ID
-    SDL_TimerID timeId = 0;
+    SDL_TimerID timeId = 0, timeId2 = 0;
  
     //SDL初始化
     // ret = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
@@ -629,7 +636,9 @@ int test_sdl_timer(void)
  
     //添加定时器
     timeId = SDL_AddTimer(1000, my_fun, &time); //定时1s
-    if (0 == timeId)
+    timeId2 = SDL_AddTimer(500, my_fun2, &time); //定时500ms
+
+    if (0 == timeId && 0 == timeId2)
     {
         printf("AddTime failed...\n"); 
         goto err0;

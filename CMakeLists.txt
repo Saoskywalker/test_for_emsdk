@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.12)
 project (emsdk_test)
 
 #设置C编译器特性
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -s USE_SDL=2 -s USE_SDL_MIXER=2 -s USE_SDL_IMAGE=2 -s USE_SDL_NET=2 -s FORCE_FILESYSTEM=1")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
 
 #宏定义, 类似gcc的-D
 add_definitions(-DDEBUG)
@@ -49,4 +49,4 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
 #设置运行文件特性
 #按要求生成合适的HTML文件
-set_target_properties(index PROPERTIES LINK_FLAGS "--shell-file ${PROJECT_SOURCE_DIR}/emsdk_shell.html -s SINGLE_FILE=0")
+set_target_properties(index PROPERTIES LINK_FLAGS "--shell-file ${PROJECT_SOURCE_DIR}/emsdk_shell.html -s SINGLE_FILE=0  -s USE_SDL=2 -s USE_SDL_MIXER=2 -s USE_SDL_IMAGE=2 -s USE_SDL_NET=2 -s FORCE_FILESYSTEM=1")
